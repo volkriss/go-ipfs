@@ -1,4 +1,4 @@
-## init system integration
+# init system integration
 
 go-ipfs can be started by your operating system's native init system.
 
@@ -7,9 +7,11 @@ go-ipfs can be started by your operating system's native init system.
 - [Upstart/startup job](#upstart)
 - [launchd](#launchd)
 
-### systemd
+## systemd
 
-For `systemd`, the best approach is to run the daemon in a user session. Here is a sample service file:
+### User Session
+
+For `systemd`, one approach is to run the daemon in a user session. Here is a simple service file that would work:
 
 ```systemd
 [Unit]
@@ -39,7 +41,22 @@ To run this in your user session, save it as `~/.config/systemd/user/ipfs.servic
 ```
 Read more about `--user` services here: [wiki.archlinux.org:Systemd ](https://wiki.archlinux.org/index.php/Systemd/User#Automatic_start-up_of_systemd_user_instances)
 
-### initd
+### System Service
+
+Another approach for `systemd` is to install as a full featured system service, using socket files to initially launch the daemon, as its own ipfs user.
+
+This way the rest of the system can work on starting up, and go-ipfs will be launched only once it's needed to handle the first incoming request.
+
+- See the configuration files in https://github.com/volkriss/go-ipfs/tree/master/misc/systemd
+- Install the two .socket files into /etc/systemd/system/
+- Install one of the .service files (normal or hardened) into the same directory, /etc/systemd/system
+- Install ipfs-sysusers.conf into /etc/sysusers.d to have `systemd` create the user ipfs
+- Run `sudo systemctl enable ipfs-api.socket ipfs-gateway.socket`
+- Run `sudo systemctl daemon-reload` to have `systemd` refresh those configuration files
+
+*Note:* If you change the listening sockets or ports on ipfs's internal configuration you must change the .socket files to match
+
+## initd
 
 - Here is a full-featured sample service file: https://github.com/dylanPowers/ipfs-linux-service/blob/master/init.d/ipfs
 - Use `service` or your distribution's equivalent to control the service.
